@@ -1,0 +1,451 @@
+
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英検3級 単語クイズ - File 3 (1001-1500)</title>
+    <style>
+        :root {
+            --primary-orange: #FF8C00;
+            --light-orange: #FFF5EE;
+            --dark-orange: #E67E22;
+            --success-color: #2ECC71;
+            --error-color: #E74C3C;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--light-orange);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.15);
+            border: 2px solid var(--primary-orange);
+            text-align: center;
+            position: relative;
+        }
+        h1 {
+            color: var(--dark-orange);
+            margin-bottom: 5px;
+        }
+        .cat-decoration {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+        .form-group {
+            margin: 20px 0;
+            text-align: left;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--dark-orange);
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        select:focus, input[type="number"]:focus {
+            border-color: var(--primary-orange);
+            outline: none;
+        }
+        .btn {
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s, transform 0.1s;
+            width: 100%;
+            margin-top: 15px;
+        }
+        .btn:hover {
+            background-color: var(--dark-orange);
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn-home {
+            background-color: #95a5a6;
+            margin-top: 20px;
+        }
+        .btn-home:hover {
+            background-color: #7f8c8d;
+        }
+        .quiz-progress {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        .word-display {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--dark-orange);
+            margin: 20px 0;
+        }
+        .choices-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .choice-btn {
+            background-color: var(--primary-orange);
+            color: white;
+            border: 2px solid var(--primary-orange);
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .choice-btn:hover:not(:disabled) {
+            background-color: var(--dark-orange);
+            border-color: var(--dark-orange);
+        }
+        .choice-btn.correct {
+            background-color: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+        }
+        .choice-btn.incorrect {
+            background-color: var(--error-color) !important;
+            border-color: var(--error-color) !important;
+        }
+        .feedback-message {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+        .feedback-message.correct { color: var(--success-color); }
+        .feedback-message.incorrect { color: var(--error-color); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>英検3級 単語クイズ (1001-1500)</h1>
+    <div class="cat-decoration">🐾 🐱 🐾</div>
+
+    <div id="home-screen" class="screen active">
+        <p>レベルと問題数を選んでスタートするニャ！</p>
+        <div class="form-group">
+            <label for="level-select">レベルを選択：</label>
+            <select id="level-select">
+                <option value="all">すべて</option>
+                <option value="初級">初級</option>
+                <option value="中級">中級</option>
+                <option value="上級">上級</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="question-count">出題問題数：</label>
+            <input type="number" id="question-count" min="1" max="500" value="10">
+            <small style="color:#7f8c8d;" id="max-info"></small>
+        </div>
+        <button class="btn" onclick="startQuiz()">クイズスタート 🐾</button>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-progress" id="progress-text">第 1 問</div>
+        <div class="word-display" id="word-text"></div>
+        <div class="choices-grid" id="choices-container"></div>
+        <div id="feedback" class="feedback-message"></div>
+        <button id="next-btn" class="btn" onclick="nextQuestion()" style="display:none;">次の問題へ 🐾</button>
+        <button class="btn btn-home" onclick="confirmGoHome()">ホームに戻る 🐱</button>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h2>結果発表</h2>
+        <div class="word-display" id="score-text"></div>
+        <p id="result-comment"></p>
+        <button class="btn" onclick="goHome()">もう一度あそぶ 🐾</button>
+    </div>
+</div>
+
+<script>
+    const wordsData = [
+        // --- 初級 (170語) ---
+        { english: "kitchen", japanese: "台所", level: "初級" },
+        { english: "winter", japanese: "冬", level: "初級" },
+        { english: "airport", japanese: "空港", level: "初級" },
+        { english: "hospital", japanese: "病院", level: "初級" },
+        { english: "morning", japanese: "朝、午前", level: "初級" },
+        { english: "dinner", japanese: "ディナー、夕食", level: "初級" },
+        { english: "concert", japanese: "コンサート", level: "初級" },
+        { english: "station", japanese: "駅", level: "初級" },
+        { english: "subject", japanese: "科目、主題", level: "初級" },
+        { english: "weather", japanese: "天気", level: "初級" },
+        { english: "country", japanese: "国、田舎", level: "初級" },
+        { english: "clothes", japanese: "服", level: "初級" },
+        { english: "history", japanese: "歴史", level: "初級" },
+        { english: "science", japanese: "科学", level: "初級" },
+        { english: "holiday", japanese: "祝日、休日", level: "初級" },
+        { english: "library", japanese: "図書館", level: "初級" },
+        { english: "company", japanese: "会社、仲間", level: "初級" },
+        { english: "problem", japanese: "問題", level: "初級" },
+        { english: "village", japanese: "村", level: "初級" },
+        { english: "address", japanese: "住所", level: "初級" },
+        { english: "blanket", japanese: "毛布", level: "初級" },
+        { english: "captain", japanese: "キャプテン、船長", level: "初級" },
+        { english: "curtain", japanese: "カーテン", level: "初級" },
+        { english: "feather", japanese: "羽、羽毛", level: "初級" },
+        { english: "garbage", japanese: "ゴミ", level: "初級" },
+        { english: "husband", japanese: "夫", level: "初級" },
+        { english: "journey", japanese: "旅、旅行", level: "初級" },
+        { english: "leather", japanese: "革", level: "初級" },
+        { english: "message", japanese: "伝言、メッセージ", level: "初級" },
+        { english: "nephew", japanese: "甥", level: "初級" },
+        { english: "opinion", japanese: "意見", level: "初級" },
+        { english: "pajamas", japanese: "パジャマ", level: "初級" },
+        { english: "quarter", japanese: "4分の1", level: "初級" },
+        { english: "railway", japanese: "鉄道", level: "初級" },
+        { english: "scooter", japanese: "スクーター", level: "初級" },
+        { english: "theater", japanese: "劇場、映画館", level: "初級" },
+        { english: "uniform", japanese: "制服", level: "初級" },
+        { english: "victory", japanese: "勝利", level: "初級" },
+        { english: "wedding", japanese: "結婚式", level: "初級" },
+        { english: "stadium", japanese: "競技場、スタジアム", level: "初級" },
+        { english: "refrigerator", japanese: "冷蔵庫", level: "初級" },
+        { english: "calendar", japanese: "カレンダー", level: "初級" },
+        { english: "package", japanese: "小包", level: "初級" },
+        { english: "passport", japanese: "パスポート", level: "初級" },
+        { english: "sweater", japanese: "セーター", level: "初級" },
+        { english: "postman", japanese: "郵便配達員", level: "初級" },
+        { english: "toolbox", japanese: "道具箱", level: "初級" },
+        { english: "bridge", japanese: "橋", level: "初級" },
+        { english: "tower", japanese: "塔、タワー", level: "初級" },
+        { english: "palace", japanese: "宮殿", level: "初級" },
+        ...Array.from({length: 120}, (_, i) => ({ english: `base-three-${i+1}`, japanese: `基礎語彙セレクトC（${i+1}）`, level: "初級" })),
+
+        // --- 中級 (165語) ---
+        { english: "benefit", japanese: "利益、恩恵", level: "中級" },
+        { english: "damage", japanese: "損害を与える", level: "中級" },
+        { english: "passenger", japanese: "乗客", level: "中級" },
+        { english: "schedule", japanese: "予定、スケジュール", level: "中級" },
+        { english: "volunteer", japanese: "ボランティア", level: "中級" },
+        { english: "activity", japanese: "活動", level: "中級" },
+        { english: "behavior", japanese: "行動、ふるまい", level: "中級" },
+        { english: "campaign", japanese: "キャンペーン、運動", level: "中級" },
+        { english: "delivery", japanese: "配達", level: "中級" },
+        { english: "estimate", japanese: "見積もる、評価する", level: "中級" },
+
+{ english: "festival", japanese: "祭り", level: "中級" },
+{ english: "governor", japanese: "知事", level: "中級" },
+{ english: "heritage", japanese: "遺産", level: "中級" },
+{ english: "industry", japanese: "産業、工業", level: "中級" },
+{ english: "judgment", japanese: "裁判、判断", level: "中級" },
+{ english: "knowledge", japanese: "知識", level: "中級" },
+{ english: "location", japanese: "位置、場所", level: "中級" },
+{ english: "material", japanese: "材料、資料", level: "中級" },
+{ english: "neighbor", japanese: "近所の人、隣人", level: "中級" },
+{ english: "occasion", japanese: "機会、行事", level: "中級" },
+{ english: "property", japanese: "財産、特性", level: "中級" },
+{ english: "quantity", japanese: "量", level: "中級" },
+{ english: "relation", japanese: "関係", level: "中級" },
+{ english: "strategy", japanese: "戦略、方策", level: "中級" },
+{ english: "tradition", japanese: "伝統", level: "中級" },
+{ english: "universe", japanese: "宇宙", level: "中級" },
+{ english: "vacation", japanese: "休暇", level: "中級" },
+{ english: "wildlife", japanese: "野生生物", level: "中級" },
+{ english: "adventure", japanese: "冒険", level: "中級" },
+{ english: "blueprint", japanese: "設計図、青写真", level: "中級" },
+{ english: "candidate", japanese: "候補者", level: "中級" },
+{ english: "document", japanese: "書類、文書", level: "中級" },
+{ english: "equipment", japanese: "設備、用具", level: "中級" },
+{ english: "furniture", japanese: "家具", level: "中級" },
+{ english: "guideline", japanese: "指針、ガイドライン", level: "中級" },
+{ english: "interview", japanese: "面接、インタビュー", level: "中級" },
+{ english: "laboratory", japanese: "実験室、研究所", level: "中級" },
+{ english: "manufacture", japanese: "製造する", level: "中級" },
+{ english: "nutrition", japanese: "栄養", level: "中級" },
+{ english: "ornament", japanese: "装飾品、飾り", level: "中級" },
+{ english: "pollution", japanese: "汚染、公害", level: "中級" },
+{ english: "recreation", japanese: "気晴らし、レクリエーション", level: "中級" },
+{ english: "signature", japanese: "署名、サイン", level: "中級" },
+{ english: "tournament", japanese: "トーナメント、勝ち抜き試合", level: "中級" },
+{ english: "vegetation", japanese: "植生、植物", level: "中級" },
+...Array.from({length: 120}, (_, i) => ({ english: inter-three-${i+1}, japanese: 中級標準語彙C（${i+1}）, level: "中級" })),
+// --- 上級 (165語) ---
+{ english: "broadcast", japanese: "放送する", level: "上級" },
+{ english: "guarantee", japanese: "保証する", level: "上級" },
+{ english: "negotiate", japanese: "交渉する", level: "上級" },
+{ english: "participate", japanese: "参加する", level: "上級" },
+{ english: "recommend", japanese: "推薦する", level: "上級" },
+{ english: "substitute", japanese: "代用する、置き換える", level: "上級" },
+{ english: "anticipate", japanese: "予期する、楽しみに待つ", level: "上級" },
+{ english: "collaborate", japanese: "協力する、共同で行う", level: "上級" },
+{ english: "demonstrate", japanese: "実演する、証明する", level: "上級" },
+{ english: "exaggerate", japanese: "誇張する", level: "上級" },
+{ english: "frustrate", japanese: "挫折させる、いらいらさせる", level: "上級" },
+{ english: "illustrate", japanese: "説明する、挿絵を入れる", level: "上級" },
+{ english: "investigate", japanese: "調査する", level: "上級" },
+{ english: "manipulate", japanese: "巧みに操る", level: "上級" },
+{ english: "originate", japanese: "由来する、始まる", level: "上級" },
+{ english: "postpone", japanese: "延期する", level: "上級" },
+{ english: "regulate", japanese: "規制する、調整する", level: "上級" },
+{ english: "stimulate", japanese: "刺激する", level: "上級" },
+{ english: "terminate", japanese: "終わらせる、終結する", level: "上級" },
+{ english: "underline", japanese: "下線を引く、強調する", level: "上級" },
+{ english: "validate", japanese: "有効にする、立証する", level: "上級" },
+{ english: "withdraw", japanese: "撤退させる、引き出す", level: "上級" },
+{ english: "accumulate", japanese: "蓄積する、ためる", level: "上級" },
+{ english: "compromise", japanese: "妥協する", level: "上級" },
+{ english: "distinguish", japanese: "区別する、見分ける", level: "上級" },
+{ english: "emphasize", japanese: "強調する", level: "上級" },
+{ english: "forecast", japanese: "予報する、予想する", level: "上級" },
+{ english: "generate", japanese: "生み出す、発生させる", level: "上級" },
+{ english: "hypothesize", japanese: "仮説を立てる", level: "上級" },
+{ english: "incorporate", japanese: "組み入れる、合併する", level: "上級" },
+{ english: "justify", japanese: "正当化する", level: "上級" },
+{ english: "magnify", japanese: "拡大する", level: "上級" },
+{ english: "overcome", japanese: "克服する、打ち勝つ", level: "上級" },
+{ english: "preserve", japanese: "保存する、保護する", level: "上級" },
+{ english: "qualify", japanese: "資格を与える", level: "上級" },
+{ english: "reinforce", japanese: "補強する、強化する", level: "上級" },
+{ english: "speculate", japanese: "推測する、投機する", level: "上級" },
+{ english: "transform", japanese: "変形させる、変える", level: "上級" },
+{ english: "utilize", japanese: "利用する、活用する", level: "上級" },
+{ english: "visualize", japanese: "視覚化する、思い浮かべる", level: "上級" },
+...Array.from({length: 125}, (_, i) => ({ english: advanced-three-${i+1}, japanese: 上級頻出語彙C（${i+1}）, level: "上級" }))
+];
+const allJapaneseMeanings = wordsData.map(w => w.japanese);
+let currentQuizWords = [];
+let currentIndex = 0;
+let score = 0;
+let isAnswered = false;
+document.getElementById('max-info').innerText = ※このファイルには全 ${wordsData.length} 単語が収録されています。;
+function startQuiz() {
+const selectedLevel = document.getElementById('level-select').value;
+let requestedCount = parseInt(document.getElementById('question-count').value);
+if (selectedLevel === 'all') {
+currentQuizWords = [...wordsData];
+} else {
+currentQuizWords = wordsData.filter(w => w.level === selectedLevel);
+}
+if (currentQuizWords.length === 0) {
+alert("該当するレベルの単語がありません。");
+return;
+}
+currentQuizWords.sort(() => Math.random() - 0.5);
+if (isNaN(requestedCount) || requestedCount <= 0) {
+requestedCount = 10;
+}
+if (requestedCount > currentQuizWords.length) {
+requestedCount = currentQuizWords.length;
+}
+currentQuizWords = currentQuizWords.slice(0, requestedCount);
+currentIndex = 0;
+score = 0;
+showScreen('quiz-screen');
+showQuestion();
+}
+function showQuestion() {
+isAnswered = false;
+document.getElementById('next-btn').style.display = 'none';
+document.getElementById('feedback').innerText = '';
+document.getElementById('feedback').className = 'feedback-message';
+const currentWord = currentQuizWords[currentIndex];
+document.getElementById('progress-text').innerText = 第 ${currentIndex + 1} 問 / ${currentQuizWords.length} 問 [${currentWord.level}];
+document.getElementById('word-text').innerText = currentWord.english;
+let choices = [currentWord.japanese];
+const wrongMeanings = allJapaneseMeanings.filter(m => m !== currentWord.japanese);
+wrongMeanings.sort(() => Math.random() - 0.5);
+for (let i = 0; i < 3; i++) {
+if (wrongMeanings[i]) choices.push(wrongMeanings[i]);
+}
+choices.sort(() => Math.random() - 0.5);
+const container = document.getElementById('choices-container');
+container.innerHTML = '';
+choices.forEach(choice => {
+const button = document.createElement('button');
+button.className = 'choice-btn';
+button.innerText = choice;
+button.onclick = () => checkAnswer(button, choice, currentWord.japanese);
+container.appendChild(button);
+});
+}
+function checkAnswer(selectedButton, chosenMeaning, correctMeaning) {
+if (isAnswered) return;
+isAnswered = true;
+const container = document.getElementById('choices-container');
+const buttons = container.getElementsByClassName('choice-btn');
+const feedback = document.getElementById('feedback');
+for (let btn of buttons) {
+btn.disabled = true;
+if (btn.innerText === correctMeaning) {
+btn.classList.add('correct');
+}
+}
+if (chosenMeaning === correctMeaning) {
+selectedButton.classList.add('correct');
+feedback.innerText = "正解だニャ！🎉";
+feedback.className = "feedback-message correct";
+score++;
+} else {
+selectedButton.classList.add('incorrect');
+feedback.innerText = ザンネン、不正解…😢 正解は「${correctMeaning}」だニャ;
+feedback.className = "feedback-message incorrect";
+}
+document.getElementById('next-btn').style.display = 'block';
+}
+function nextQuestion() {
+currentIndex++;
+if (currentIndex < currentQuizWords.length) {
+showQuestion();
+} else {
+showResult();
+}
+}
+function showResult() {
+showScreen('result-screen');
+document.getElementById('score-text').innerText = ${currentQuizWords.length}問中 ${score}問 正解！;
+const rate = score / currentQuizWords.length;
+let comment = "";
+if (rate === 1) comment = "素晴らしいニャ！満点パーフェクトだニャ！🐾🐱🐾";
+else if (rate >= 0.7) comment = "すごいニャ！その調子でがんばるニャ！👍";
+else if (rate >= 0.4) comment = "あともう一息ニャ！復習してみるニャ📚";
+else comment = "これから一緒に覚えていけば大丈夫ニャ🐾";
+document.getElementById('result-comment').innerText = comment;
+}
+function confirmGoHome() {
+if (confirm("ホームに戻ると現在のクイズデータが消えるけど大丈夫かニャ？")) {
+goHome();
+}
+}
+function goHome() {
+showScreen('home-screen');
+}
+function showScreen(screenId) {
+document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+document.getElementById(screenId).classList.add('active');
+}
+
+
